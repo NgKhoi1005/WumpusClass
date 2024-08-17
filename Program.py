@@ -22,12 +22,12 @@ class Program:
                     ['W', '-', '-', 'P']]
         '''
         self.map =  [
-            ['-', '-', 'P', 'W', '-', '-'],
-            ['-', '-', '-', '-', '-', 'P'],
-            ['-', '-', '-', '-', '-', '-'],
-            ['W', 'G', '-', '-', 'P', '-'],
-            ['-', '-', 'P', '-', '-', '-'],
-            ['-', '-', '-', '-', 'W', '-']
+            ['H', 'H', 'P', 'W', 'H', 'H'],
+            ['H', 'H', 'H', 'H', 'H', 'P'],
+            ['H', 'H', 'H', 'H', 'H', 'H'],
+            ['W', 'G', 'H', 'H', 'P', 'H'],
+            ['H', 'H', 'P', 'H', 'H', 'H'],
+            ['H', 'H', 'H', 'H', 'W', 'H']
         ]
         
         
@@ -51,6 +51,11 @@ class Program:
             percept.append('G' + str(i) + ',' + str(j))
             self.map[i][j] = '-'                            # because the Agent will grab it immediately
 
+        if self.map[i][j] == 'H':
+            print('-- Program tell Healing Potion here!')
+            percept.append('H' + str(i) + ',' + str(j))
+            self.map[i][j] = '-'                            # because the Agent will grab it immediately
+
 
         # check for around cells (i, j) to send signal
         for direction in directions:
@@ -66,6 +71,11 @@ class Program:
                     print('-- Program tell Breeze here!')
                     temp = 'B' + str(i) + ',' + str(j)
                     percept.append(temp)
+
+                if self.map[x][y] == 'H':   # Healing Potion around (i, j) -> (i, j) must be Glow
+                    print('-- Program tell Glow here!')
+                    temp = 'L' + str(i) + ',' + str(j)
+                    percept.append(temp)
                     
 
         return percept
@@ -74,10 +84,3 @@ class Program:
     def remove(self, lit, x, y):
         if self.map[x][y] == lit:
             self.map[x][y] = '-'
-
-
-    
-
-
-        
-    

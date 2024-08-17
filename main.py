@@ -1,9 +1,6 @@
 from Program import Program
 from Agent import Agent
 
-from pysat.formula import CNF, IDPool
-from pysat.solvers import Solver
-
 def Back_tracking(Map, agent, i, j):
     if i < 0 or i >= Map.map_size or j < 0 or j >= Map.map_size:
         return

@@ -18,6 +18,9 @@ class Agent:
         self.KB.append([-self.vpool.id('B0,0')])
         self.KB.append([-self.vpool.id('P0,0')])
         self.KB.append([-self.vpool.id('W0,0')])
+        self.KB.append([-self.vpool.id('L0,0')])
+        self.KB.append([-self.vpool.id('H0,0')])
+        self.health = 100
 
     # set Perceive for cell (i, j)
     def setPerceive(self, percept):
@@ -246,6 +249,7 @@ class Agent:
         self.learn([-self.vpool.id(bind_str)])      # tell KB that no Breeze here
         solver.delete()
         return 0
+    
 
 
     # ================================ Handle GOLD=============================
@@ -279,6 +283,135 @@ class Agent:
     
 
         
+    # ================================ Handle HEALING POTION=============================
+
+    # find Healing Potion (i, j) in KB
+    def healing_potion(self, i, j):
+        if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
+            return 0
+        
+        bind_str = 'H' + str(i) + ',' + str(j)
+        solver = Solver(bootstrap_with=self.KB.clauses)
+        solver.add_clause([-self.vpool.id(bind_str)])
+    
+        if solver.solve() == False:
+            self.safe[i][j] = 0
+            return 1
+        else:
+            return 0
+        
+    def no_healing_potion(self, i, j):
+        if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
+            return 0
+        
+        bind_str = 'H' + str(i) + ',' + str(j)
+        solver = Solver(bootstrap_with=self.KB.clauses)
+        solver.add_clause([self.vpool.id(bind_str)])
+    
+        if solver.solve() == False:
+            return 1
+        
+        return 0
+    
+    def detect_healing_potion(self, i, j):
+        if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
+            return 0
+        
+        if i+1 < self.map_size:
+            s1 = 'L' + str(i) + ',' + str(j)
+            s2 = 'L' + str(i+1) + ',' + str(j+1)
+            s3 = 'L' + str(i+1) + ',' + str(j-1)
+            S = 'H' + str(i+1) + ',' + str(j)
+            # BOTTOM, RIGHT
+            if j+1 < self.map_size:
+                S1 = 'H' + str(i) + ',' + str(j+1)
+                sentence = [-self.vpool.id(s1), -self.vpool.id(s2), self.vpool.id(S1), self.vpool.id(S)]
+                self.learn(sentence)
+            # BOTTOM, LEFT
+            if j-1 >= 0:
+                S1 = 'H' + str(i) + ',' + str(j-1)
+                sentence = [-self.vpool.id(s1), -self.vpool.id(s3), self.vpool.id(S1), self.vpool.id(S)]
+                self.learn(sentence)
+                
+        if i-1 >= 0:
+            s1 = 'L' + str(i) + ',' + str(j)
+            s2 = 'L' + str(i-1) + ',' + str(j+1)
+            s3 = 'L' + str(i-1) + ',' + str(j-1)
+            S = 'H' + str(i-1) + ',' + str(j)
+            # TOP, RIGHT
+            if j+1 < self.map_size:
+                S1 = 'H' + str(i) + ',' + str(j+1)
+                sentence = [-self.vpool.id(s1), -self.vpool.id(s2), self.vpool.id(S1), self.vpool.id(S)]
+                self.learn(sentence)
+            # TOP, LEFT
+            if j-1 >= 0:
+                S1 = 'H' + str(i) + ',' + str(j-1)
+                sentence = [-self.vpool.id(s1), -self.vpool.id(s3), self.vpool.id(S1), self.vpool.id(S)]
+                self.learn(sentence)
+
+    def confirm_no_healing_potion(self, i, j):
+        bind_str = 'H' + str(i) + ',' + str(j)
+        Npit_id = self.vpool.id(bind_str)
+        self.learn([-Npit_id])
+
+    # check if Glow at cell (i, j) or not   
+    def check_Glow(self, i, j):
+        if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
+            return 0
+        
+        bind_str = 'L' + str(i) + ',' + str(j)
+        element_id = self.vpool.id(bind_str)
+        query = [element_id]
+        if element_id not in [lit for clause in self.KB.clauses for lit in clause]:
+            return 0
+        
+        solver = Solver(bootstrap_with=self.KB.clauses)
+        solver.add_clause([-lit for lit in query])
+        
+        if solver.solve() == False:                 # Gold here
+            solver.delete()
+            return 1
+
+        solver.delete()
+        return 0
+    
+    def check_HP(self, i, j):
+        if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
+            return 0
+        
+        bind_str = 'H' + str(i) + ',' + str(j)
+        element_id = self.vpool.id(bind_str)
+        query = [element_id]
+        if element_id not in [lit for clause in self.KB.clauses for lit in clause]:
+            return 0
+        
+        solver = Solver(bootstrap_with=self.KB.clauses)
+        solver.add_clause([-lit for lit in query])
+        
+        if solver.solve() == False:                 # Gold here
+            solver.delete()
+            return 1
+
+        solver.delete()
+        return 0
+
+    # delete the Healing Potion at cell (i, j) in KB to avoid multiple grabbing
+    def grabHealingPotion(self, i, j, Map):
+        self.health += 25
+        adj = adjCell(i, j, self.map_size)
+        for x in adj:
+            if self.visited[x] == 1:
+                bind_str = 'L' + str(x[0]) + ',' + str(x[1])
+                if [self.vpool.id(bind_str)] in [self.KB.clauses]:
+                    self.KB.clauses.remove([self.vpool.id(bind_str)])
+        
+        h_id = self.vpool.id('H' + str(i) + ',' + str(j))
+        clauses_to_remove = [clause for clause in self.KB.clauses if h_id in clause]
+        for clause in clauses_to_remove:
+            self.KB.clauses.remove(clause)
+        
+        # Tell the Program to remove wumpus (i, j) from the map
+        Map.remove('H', i, j)
 
 
 
@@ -288,6 +421,8 @@ class Agent:
         Stench = self.check_Stench(i, j)
         Breeze = self.check_Breeze(i, j)
         Gold = self.check_Gold(i, j)
+        Glow = self.check_Glow(i, j)
+        Healing_Potion = self.check_HP(i, j)
         
         bind_str = str(i) + ',' + str(j)
         
@@ -373,6 +508,12 @@ class Agent:
             for x in adj:
                 self.confirm_NoPit(x[0], x[1])
 
+        # -------------------consider HEALING POTION--------------------------
+        if Healing_Potion == True:
+            print(' |---> Agent grabs Healing Potion at (%d, %d)' %(i, j))
+            self.grabHealingPotion(i, j, Map)
+            print('Agent Health: ', self.health)
+            
 
         # -------------------consider GOLD--------------------------
         if Gold == True:
