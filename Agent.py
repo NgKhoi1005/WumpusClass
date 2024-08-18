@@ -1,8 +1,6 @@
 import numpy as np
-
 from pysat.formula import CNF, IDPool
 from pysat.solvers import Solver
-
 
 SCORE = {
         'GOLD' :  5000,
@@ -13,7 +11,6 @@ SCORE = {
 
 class Agent:
     def __init__(self, map_size):
-        
         self.map_size = map_size
         self.KB = CNF()
         self.vpool = IDPool()
@@ -31,12 +28,14 @@ class Agent:
         self.hp_count = 0
         self.score = 0
 
+
     # set Perceive for cell (i, j)
     def setPerceive(self, percept):
         if percept == None:
             return
         for x in percept:
             self.KB.append([self.vpool.id(x)])
+
             
     def learn(self, clause):
         if clause not in self.KB.clauses:
@@ -59,6 +58,7 @@ class Agent:
             return 1
         
         return 0
+    
 
     def noWumpus(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
@@ -72,6 +72,7 @@ class Agent:
             return 1
         
         return 0
+    
 
     # Logic statement to detect if Wumpus is around (i, j)
     def detect_Wumpus(self, i, j):
@@ -109,6 +110,7 @@ class Agent:
                 S1 = 'W' + str(i) + ',' + str(j-1)
                 sentence = [-self.vpool.id(s1), -self.vpool.id(s3), self.vpool.id(S1), self.vpool.id(S)]
                 self.learn(sentence)
+
 
     def confirm_NoWumpus(self, i, j):
         bind_str = 'W' + str(i) + ',' + str(j)
@@ -198,6 +200,7 @@ class Agent:
             return 1
         else:
             return 0
+        
 
     # Logic statement to detect if Pit is around (i, j)
     def detect_Pit(self, i, j):
@@ -254,7 +257,6 @@ class Agent:
         self.learn([p_id])
         
         
-    
     # check if Breeze at cell (i, j) or not   
     def check_Breeze(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
@@ -330,11 +332,13 @@ class Agent:
         else:
             return 0
         
+        
     def confirm_NoHP(self, i, j):
         bind_str = 'H' + str(i) + ',' + str(j)
         Nhp_id = self.vpool.id(bind_str)
         self.learn([-Nhp_id])
     
+
     def detect_HP(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
             return 0
@@ -394,6 +398,7 @@ class Agent:
         solver.delete()
         return 0
     
+    
     def check_HP(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
             return 0
@@ -413,12 +418,14 @@ class Agent:
 
         solver.delete()
         return 0
+    
 
     # delete the Healing Potion at cell (i, j) in KB to avoid multiple grabbing
     def grabHP(self, i, j, Map):
         self.hp_count += 1
         self.score += SCORE['ACTION']
         self.forget_HP(i, j, Map)
+
 
     # Forget all logic statement of HP at (x, y) after determining
     def forget_HP(self, x, y, Map):
@@ -454,6 +461,7 @@ class Agent:
             return 1
         else:
             return 0
+        
 
     # check if Whiff at cell (i, j) or not   
     def check_Whiff(self, i, j):
@@ -475,6 +483,7 @@ class Agent:
 
         solver.delete()
         return 0
+    
 
     # check if Poison Gas at cell (i, j) or not   
     def check_PG(self, i, j):
@@ -496,11 +505,13 @@ class Agent:
 
         solver.delete()
         return 0
+    
 
     def confirm_NoPG(self, i, j):
         bind_str = 'P_G' + str(i) + ',' + str(j)
         Npg_id = self.vpool.id(bind_str)
         self.learn([-Npg_id])
+
 
     def detect_PG(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
@@ -541,15 +552,6 @@ class Agent:
 
     # Forget all logic statement of PG at (x, y) after determining
     def forget_Whiff(self, x, y):
-        # forget 1 layer of Whiff of cells around
-        # adj = adjCell(x, y, self.map_size)
-        # for cell in adj:
-        #     if self.visited[cell] == 1:
-        #         wh_id = self.vpool.id('W_H' + str(cell[0]) + ',' + str(cell[1]))
-        #         clauses_to_remove = [clause for clause in self.KB.clauses if -wh_id in clause]
-        #         for clause in clauses_to_remove:
-        #             self.KB.clauses.remove(clause)
-
         pg_id = self.vpool.id('P_G' + str(x) + ',' + str(y))
         clauses_to_remove = [clause for clause in self.KB.clauses if pg_id in clause]
         for clause in clauses_to_remove:
@@ -563,7 +565,6 @@ class Agent:
     def makeDecision(self, i, j, Map):
         self.score += SCORE['ACTION']
         
-        
         Stench = self.check_Stench(i, j)
         Breeze = self.check_Breeze(i, j)
         Gold = self.check_Gold(i, j)
@@ -576,7 +577,6 @@ class Agent:
         
         # -------------------consider WUMPUS--------------------------
         if Stench == True:  
-            
             self.confirm_NoWumpus(i, j)
             wumpus_pos = []
             print(' |---> Agent can feel Stench at (%d, %d)' %(i, j))
@@ -657,6 +657,7 @@ class Agent:
             for x in adj:
                 self.confirm_NoPit(x[0], x[1])
 
+
         # -------------------consider HEALING POTION--------------------------
         if Glow == True:
             self.confirm_NoHP(i, j)
@@ -677,13 +678,11 @@ class Agent:
                 print('   |-------> Heal potion at (%d, %d)' %(i,j+1))
                 hp_pos.append((i, j+1))
             
-
             # If Agent know exact position of HP, let KB know
             for pos in hp_pos:
                 self.learn([self.vpool.id('H' + str(pos[0]) + ',' + str(pos[1]))])
                 if self.safe[pos] != 0:
                     self.safe[pos] = 1
-
 
         else:
             # This cell has no Glow 
@@ -696,10 +695,11 @@ class Agent:
 
         # -------------------grab HEALING POTION--------------------------
         if Healing_Potion == True:
-            print(' |---> Agent grabs HP at (%d, %d)' %(i, j))
+            print(' |---> Agent grabs Healing Potion at (%d, %d)' %(i, j))
             self.grabHP(i, j, Map)
         else:
             self.confirm_NoHP(i, j)
+
 
         # -------------------consider GOLD--------------------------
         if Gold == True:
@@ -728,7 +728,6 @@ class Agent:
                 print('   |-------> Poisonous Gas at (%d, %d)' %(i,j+1))
                 pg_pos.append((i, j+1))
             
-            
             # If Agent know exact position of PG, let KB know
             for pos in pg_pos:
                 self.learn([self.vpool.id('P_G' + str(pos[0]) + ',' + str(pos[1]))])
@@ -743,7 +742,6 @@ class Agent:
             for x in adj:
                 if self.visited[x] != 1:
                     self.safe[x] = 0
-            
 
         else:
             # This cell has no Whiff 
@@ -754,16 +752,33 @@ class Agent:
                 self.confirm_NoPG(x[0], x[1])
               
          
+        # if P_Gas == True:
+        #     self.health = max(0, self.health - 25)
+
+        #     if self.health <= 75 and self.hp_count > 0:             # Use a HP
+        #         self.health += 25
+        #         self.hp_count -= 1
+        #         print('Agent has used Healing Potion at (%d, %d)' %(i,j))
+        #         self.score += SCORE['ACTION']
+
+        #     if self.health < 50:                    # For returning back, if Agent's health less than 50 
+        #         self.safe[i][j] = 0                 # he should not go thourgh it again
+
         if P_Gas == True:
-            self.health = max(0, self.health - 25)
+            if self.hp_count == 0 and self.health <= 25:
+                print('Agent has been died at (%d, %d)' %(i,j))
+                return
+            
+            if self.hp_count == 0 and self.health > 25:
+                print('Agent\'s health has been reduced at (%d, %d)' %(i,j))
+                self.health -= 25
+                print('Agent\'s health:  (%d)' %self.health)
 
-            if self.health <= 75 and self.hp_count > 0:             # Use a HP
-                self.health += 25
+            else:
                 self.hp_count -= 1
+                print('Agent has used Healing Potion at (%d, %d)' %(i,j))
+                print('Agent\'s health:  (%d)' %self.health)
                 self.score += SCORE['ACTION']
-
-            if self.health < 50:                    # For returning back, if Agent's health less than 50 
-                self.safe[i][j] = 0                 # he should not go thourgh it again
                         
         
         # ------------Consider which cell is safe?-------------------
@@ -781,18 +796,19 @@ class Agent:
                         self.confirm_NoPit(x[0], x[1])
                         self.safe[x] = 1
         
-            
-        #print(self.safe)
-        
         return
+    
+
     def explore_map(self, Map, agent, i, j):
         if i < 0 or i >= Map.map_size or j < 0 or j >= Map.map_size:
             return
+        
         agent.visited[i][j] = 1
+
         # Agent perceive
         agent.setPerceive(Map.getPerceive(i, j))
         agent.safe[i][j] = 1
-        #   ....
+
         #   Agent decide what cell safe, or unsafe
         agent.makeDecision(i, j, Map)
 
@@ -815,6 +831,7 @@ def literal_to_str(literal, vpool):
     else:
         return vpool.obj(literal)
 
+
 # return all adjacent cells
 def adjCell(i, j, map_size):
     adj = []
@@ -828,4 +845,3 @@ def adjCell(i, j, map_size):
         adj.append((i, j+1))
         
     return adj
-        

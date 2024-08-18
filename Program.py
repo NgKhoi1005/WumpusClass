@@ -1,7 +1,4 @@
-import numpy as np
 from Agent import Agent
-from pysat.formula import CNF, IDPool
-from pysat.solvers import Solver
 
 '''
 Elements = {'Wumpus' : 0,
@@ -9,20 +6,19 @@ Elements = {'Wumpus' : 0,
             }
 
 '''
-class Program:
-    
-    def __init__(self, fileName):
 
+class Program:
+    def __init__(self, fileName):
         self.map = self.read_Map('maps/' + fileName)
         self.map_size = len(self.map[0])
         agent = Agent(self.map_size)
 
         agent.explore_map(self, agent, 0, 0)
         print(f"Total Score: {agent.score}")
+
         
     def read_Map(self, filename):
         self.map = []
-
         with open(filename, 'r') as f:
             n = int(f.readline().strip())
 
@@ -32,9 +28,9 @@ class Program:
                 self.map.append(row)
         return self.map
     
+    
     def write_Map(self, filename):
         filename = "result" + filename.split('.')[0][-1] + ".txt"
-        
         
     # access a cell
     def getCell(self, i, j):
@@ -55,7 +51,6 @@ class Program:
             percept.append('G' + str(i) + ',' + str(j))
             self.map[i][j] = '-'                            # because the Agent will grab it immediately
 
-
         # check for around cells (i, j) to send signal
         for direction in directions:
             x, y = i + direction[0], j + direction[1]
@@ -71,7 +66,7 @@ class Program:
                     temp = 'B' + str(i) + ',' + str(j)
                     percept.append(temp)
 
-                if self.map[x][y] == 'H':   # Healing Potion around (i, j) -> (i, j) must be Glow
+                if self.map[x][y] == 'H_P':   # Healing Potion around (i, j) -> (i, j) must be Glow
                     print('-- Program tell Glow here!')
                     temp = 'G_L' + str(i) + ',' + str(j)
                     percept.append(temp)
@@ -81,9 +76,7 @@ class Program:
                     temp = 'W_H' + str(i) + ',' + str(j)
                     percept.append(temp)
                     
-
         return percept
-
 
     def remove(self, lit, x, y):
         if self.map[x][y] == lit:
