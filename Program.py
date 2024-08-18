@@ -48,6 +48,7 @@ class Program:
                 self.map.append(row)
         return self.map
         
+        
     # access a cell
     def getCell(self, i, j):
         return self.map[i][j]
@@ -66,8 +67,6 @@ class Program:
             print('-- Program tell Gold here!')
             percept.append('G' + str(i) + ',' + str(j))
             self.map[i][j] = '-'                            # because the Agent will grab it immediately
-
-        
 
 
         # check for around cells (i, j) to send signal
@@ -88,6 +87,11 @@ class Program:
                 if self.map[x][y] == 'H':   # Healing Potion around (i, j) -> (i, j) must be Glow
                     print('-- Program tell Glow here!')
                     temp = 'G_L' + str(i) + ',' + str(j)
+                    percept.append(temp)
+
+                if self.map[x][y] == 'P_G':   # Poisonous Gas around (i, j) -> (i, j) must be Whiff
+                    print('-- Program tell Whiff here!')
+                    temp = 'W_H' + str(i) + ',' + str(j)
                     percept.append(temp)
                     
 
