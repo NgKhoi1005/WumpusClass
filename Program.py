@@ -1,4 +1,8 @@
 import numpy as np
+from Agent import Agent
+from pysat.formula import CNF, IDPool
+from pysat.solvers import Solver
+from gui import World
 
 '''
 Elements = {'Wumpus' : 0,
@@ -8,29 +12,41 @@ Elements = {'Wumpus' : 0,
 '''
 class Program:
     
-    # init a map
     def __init__(self):
-        return self
-    
-    def __init__(self, size):
-        self.map_size = size
-        self.map = np.ndarray(shape=(size, size), dtype=np.str_)
+        # self.map_size = size
+        # self.map = np.ndarray(shape=(size, size), dtype=np.str_)
         '''
         self.map = [['A', '-', 'P', '-'],
                     ['-', '-', '-', '-'],
                     ['W', 'G', '-', '-'],
                     ['W', '-', '-', 'P']]
         '''
-        self.map =  [
-            ['-', 'H', 'P', 'W', '-', 'H'],
-            ['-', '-', '-', '-', '-', 'P'],
-            ['-', 'H', '-', '-', '-', '-'],
-            ['W', 'G', '-', '-', 'P', '-'],
-            ['-', '-', 'P', '-', 'H', '-'],
-            ['-', '-', 'H', '-', 'W', 'H']
-        ]
+        # self.map =  [['-', 'H', 'P', 'W', '-', 'H'],
+        #     ['-', '-', '-', '-', '-', 'P'],
+        #     ['-', 'H', '-', '-', '-', '-'],
+        #     ['W', 'G', '-', '-', 'P', '-'],
+        #     ['-', '-', 'P', '-', 'H', '-'],
+        #     ['-', '-', 'H', '-', 'W', 'H']]
+
+        self.map = self.read_Map('maps/map.txt')
+        self.map_size = len(self.map[0])
+        agent = Agent(self.map_size)
+
+        world = World(self.map_size)
+
+        # agent.explore_map(self, agent, 0, 0)
         
-        
+    def read_Map(self, filename):
+        self.map = []
+
+        with open(filename, 'r') as f:
+            n = int(f.readline().strip())
+
+            for _ in range(n):
+                line = f.readline().strip()
+                row = line.split('.')
+                self.map.append(row)
+        return self.map
         
     # access a cell
     def getCell(self, i, j):

@@ -307,9 +307,10 @@ class Agent:
             return 0
         
         bind_str = 'H' + str(i) + ',' + str(j)
+
         solver = Solver(bootstrap_with=self.KB.clauses)
         solver.add_clause([-self.vpool.id(bind_str)])
-    
+
         if solver.solve() == False:
             self.safe[i][j] = 1
             return 1
@@ -367,6 +368,7 @@ class Agent:
         element_id = self.vpool.id(bind_str)
         query = [element_id]
         if element_id not in [lit for clause in self.KB.clauses for lit in clause]:
+            
             return 0
         
         solver = Solver(bootstrap_with=self.KB.clauses)
@@ -601,8 +603,35 @@ class Agent:
         #print(self.safe)
         
         return
-    
+    def explore_map(self, Map, agent, i, j):
+        if i < 0 or i >= Map.map_size or j < 0 or j >= Map.map_size:
+            return
+        agent.visited[i][j] = 1
+        # Agent perceive
+        agent.setPerceive(Map.getPerceive(i, j))
+        agent.safe[i][j] = 1
+        #   ....
+        #   Agent decide what cell safe, or unsafe
+        agent.makeDecision(i, j, Map)
 
+        if i+1 < Map.map_size and agent.safe[i+1][j] != 0 and agent.visited[i+1][j] != 1:
+            self.explore_map(Map, agent, i+1, j)
+
+        if j+1 < Map.map_size and agent.safe[i][j+1] != 0 and agent.visited[i][j+1] != 1:
+            self.explore_map(Map, agent, i, j+1)
+            
+        if 0 <= j-1 and agent.safe[i][j-1] != 0 and agent.visited[i][j-1] != 1:
+            self.explore_map(Map, agent, i, j-1)
+
+        if i == 0 and j == 0:
+            print('Agent has climbed out!')
+
+
+def literal_to_str(literal, vpool):
+    if literal < 0:
+        return f"-{vpool.obj(abs(literal))}"
+    else:
+        return vpool.obj(literal)
 
 # return all adjacent cells
 def adjCell(i, j, map_size):
