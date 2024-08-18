@@ -18,9 +18,9 @@ class Agent:
         self.KB.append([-self.vpool.id('B0,0')])
         self.KB.append([-self.vpool.id('P0,0')])
         self.KB.append([-self.vpool.id('W0,0')])
-        self.KB.append([-self.vpool.id('L0,0')])
         self.KB.append([-self.vpool.id('H0,0')])
         self.health = 100
+        self.hp_count = 0
 
     # set Perceive for cell (i, j)
     def setPerceive(self, percept):
@@ -226,7 +226,23 @@ class Agent:
                 sentence = [-self.vpool.id(s1), -self.vpool.id(s3), self.vpool.id(S1), self.vpool.id(S)]
                 self.learn(sentence)
     
-    
+
+    # Forget all logic statement of PIT at (x, y) after determining  (x, y) unsafe
+    def forget_Breeze(self, x, y):
+        # forget 1 layer of Breeze of cells around died Wumpus
+        adj = adjCell(x, y, self.map_size)
+        for cell in adj:
+            if self.visited[cell] == 1:
+                bind_str = 'B' + str(cell[0]) + ',' + str(cell[1])
+                if [self.vpool.id(bind_str)] in [self.KB.clauses]:
+                    self.KB.clauses.remove([self.vpool.id(bind_str)])
+        
+        w_id = self.vpool.id('P' + str(x) + ',' + str(y))
+        clauses_to_remove = [clause for clause in self.KB.clauses if w_id in clause]
+        for clause in clauses_to_remove:
+            self.KB.clauses.remove(clause)
+        
+        
     
     # check if Breeze at cell (i, j) or not   
     def check_Breeze(self, i, j):
@@ -286,7 +302,7 @@ class Agent:
     # ================================ Handle HEALING POTION=============================
 
     # find Healing Potion (i, j) in KB
-    def healing_potion(self, i, j):
+    def isHP(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
             return 0
         
@@ -295,32 +311,24 @@ class Agent:
         solver.add_clause([-self.vpool.id(bind_str)])
     
         if solver.solve() == False:
-            self.safe[i][j] = 0
+            self.safe[i][j] = 1
             return 1
         else:
             return 0
         
-    def no_healing_potion(self, i, j):
-        if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
-            return 0
-        
+    def confirm_NoHP(self, i, j):
         bind_str = 'H' + str(i) + ',' + str(j)
-        solver = Solver(bootstrap_with=self.KB.clauses)
-        solver.add_clause([self.vpool.id(bind_str)])
+        Npit_id = self.vpool.id(bind_str)
+        self.learn([-Npit_id])
     
-        if solver.solve() == False:
-            return 1
-        
-        return 0
-    
-    def detect_healing_potion(self, i, j):
+    def detect_HP(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
             return 0
         
         if i+1 < self.map_size:
-            s1 = 'L' + str(i) + ',' + str(j)
-            s2 = 'L' + str(i+1) + ',' + str(j+1)
-            s3 = 'L' + str(i+1) + ',' + str(j-1)
+            s1 = 'G_L' + str(i) + ',' + str(j)
+            s2 = 'G_L' + str(i+1) + ',' + str(j+1)
+            s3 = 'G_L' + str(i+1) + ',' + str(j-1)
             S = 'H' + str(i+1) + ',' + str(j)
             # BOTTOM, RIGHT
             if j+1 < self.map_size:
@@ -334,9 +342,9 @@ class Agent:
                 self.learn(sentence)
                 
         if i-1 >= 0:
-            s1 = 'L' + str(i) + ',' + str(j)
-            s2 = 'L' + str(i-1) + ',' + str(j+1)
-            s3 = 'L' + str(i-1) + ',' + str(j-1)
+            s1 = 'G_L' + str(i) + ',' + str(j)
+            s2 = 'G_L' + str(i-1) + ',' + str(j+1)
+            s3 = 'G_L' + str(i-1) + ',' + str(j-1)
             S = 'H' + str(i-1) + ',' + str(j)
             # TOP, RIGHT
             if j+1 < self.map_size:
@@ -349,17 +357,13 @@ class Agent:
                 sentence = [-self.vpool.id(s1), -self.vpool.id(s3), self.vpool.id(S1), self.vpool.id(S)]
                 self.learn(sentence)
 
-    def confirm_no_healing_potion(self, i, j):
-        bind_str = 'H' + str(i) + ',' + str(j)
-        Npit_id = self.vpool.id(bind_str)
-        self.learn([-Npit_id])
 
     # check if Glow at cell (i, j) or not   
     def check_Glow(self, i, j):
         if i < 0 or i >= self.map_size or j < 0 or j >= self.map_size:
             return 0
         
-        bind_str = 'L' + str(i) + ',' + str(j)
+        bind_str = 'G_L' + str(i) + ',' + str(j)
         element_id = self.vpool.id(bind_str)
         query = [element_id]
         if element_id not in [lit for clause in self.KB.clauses for lit in clause]:
@@ -368,7 +372,7 @@ class Agent:
         solver = Solver(bootstrap_with=self.KB.clauses)
         solver.add_clause([-lit for lit in query])
         
-        if solver.solve() == False:                 # Gold here
+        if solver.solve() == False:                 # Glow here
             solver.delete()
             return 1
 
@@ -388,7 +392,7 @@ class Agent:
         solver = Solver(bootstrap_with=self.KB.clauses)
         solver.add_clause([-lit for lit in query])
         
-        if solver.solve() == False:                 # Gold here
+        if solver.solve() == False:                 # HP here
             solver.delete()
             return 1
 
@@ -396,12 +400,12 @@ class Agent:
         return 0
 
     # delete the Healing Potion at cell (i, j) in KB to avoid multiple grabbing
-    def grabHealingPotion(self, i, j, Map):
-        self.health += 25
+    def grabHP(self, i, j, Map):
+        self.hp_count += 1
         adj = adjCell(i, j, self.map_size)
         for x in adj:
             if self.visited[x] == 1:
-                bind_str = 'L' + str(x[0]) + ',' + str(x[1])
+                bind_str = 'G_L' + str(x[0]) + ',' + str(x[1])
                 if [self.vpool.id(bind_str)] in [self.KB.clauses]:
                     self.KB.clauses.remove([self.vpool.id(bind_str)])
         
@@ -410,10 +414,27 @@ class Agent:
         for clause in clauses_to_remove:
             self.KB.clauses.remove(clause)
         
-        # Tell the Program to remove wumpus (i, j) from the map
+        # Tell the Program to remove HP (i, j) from the map
         Map.remove('H', i, j)
 
 
+
+    # Forget all logic statement of HP at (x, y) after grabbing
+    def forget_HP(self, x, y):
+        # forget 1 layer of Breeze of cells around died Wumpus
+        adj = adjCell(x, y, self.map_size)
+        for cell in adj:
+            if self.visited[cell] == 1:
+                bind_str = 'G_L' + str(cell[0]) + ',' + str(cell[1])
+                if [self.vpool.id(bind_str)] in [self.KB.clauses]:
+                    self.KB.clauses.remove([self.vpool.id(bind_str)])
+        
+        w_id = self.vpool.id('H' + str(x) + ',' + str(y))
+        clauses_to_remove = [clause for clause in self.KB.clauses if w_id in clause]
+        for clause in clauses_to_remove:
+            self.KB.clauses.remove(clause)
+
+   
 
     #   ============= Agent makes decision at cell (i, j) base on KB
     def makeDecision(self, i, j, Map):
@@ -493,6 +514,7 @@ class Agent:
             for pos in pit_pos:
                 self.learn([self.vpool.id('P' + str(pos[0]) + ',' + str(pos[1]))])
                 self.safe[pos] = 0
+                self.forget_Breeze(i, j)
 
             # All the adjacent cells of Breeze that unvisited will be unsafe
             adj = adjCell(i, j, self.map_size)
@@ -509,11 +531,45 @@ class Agent:
                 self.confirm_NoPit(x[0], x[1])
 
         # -------------------consider HEALING POTION--------------------------
-        if Healing_Potion == True:
-            print(' |---> Agent grabs Healing Potion at (%d, %d)' %(i, j))
-            self.grabHealingPotion(i, j, Map)
-            print('Agent Health: ', self.health)
+        if Glow == True:
+            self.confirm_NoHP(i, j)
+            print(' |---> Agent can feel Glow at (%d, %d)' %(i, j))
+            # check if HP is around (i, j)
+            hp_pos = []
+            self.detect_HP(i, j)
+            if self.isHP(i+1, j): 
+                print('   |-------> Heal potion at (%d, %d)' %(i+1,j))
+                hp_pos.append((i+1, j))
+            if self.isHP(i-1, j): 
+                print('   |-------> Heal potion at (%d, %d)' %(i-1,j))
+                hp_pos.append((i-1, j))
+            if self.isHP(i, j-1): 
+                print('   |-------> Heal potion at (%d, %d)' %(i,j-1))
+                hp_pos.append((i, j-1))
+            if self.isHP(i, j+1): 
+                print('   |-------> Heal potion at (%d, %d)' %(i,j+1))
+                hp_pos.append((i, j+1))
             
+
+            # If Agent know exact position of HP, let KB know
+            for pos in hp_pos:
+                self.learn([self.vpool.id('H' + str(pos[0]) + ',' + str(pos[1]))])
+                self.safe[pos] = 1
+
+        else:
+            # This cell has no Glow 
+            # which means, no HP around this cell!
+            self.learn([-self.vpool.id('H' + bind_str)])    
+            adj = adjCell(i, j, self.map_size)
+            for x in adj:
+                self.confirm_NoHP(x[0], x[1])
+
+
+        # -------------------grab HEALING POTION--------------------------
+        if Healing_Potion == True:
+            print(' |---> Agent grabs HP at (%d, %d)' %(i, j))
+            self.grabHP(i, j, Map)
+            self.forget_HP(i, j)
 
         # -------------------consider GOLD--------------------------
         if Gold == True:

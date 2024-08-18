@@ -22,12 +22,12 @@ class Program:
                     ['W', '-', '-', 'P']]
         '''
         self.map =  [
-            ['H', 'H', 'P', 'W', 'H', 'H'],
-            ['H', 'H', 'H', 'H', 'H', 'P'],
-            ['H', 'H', 'H', 'H', 'H', 'H'],
-            ['W', 'G', 'H', 'H', 'P', 'H'],
-            ['H', 'H', 'P', 'H', 'H', 'H'],
-            ['H', 'H', 'H', 'H', 'W', 'H']
+            ['-', 'H', 'P', 'W', '-', 'H'],
+            ['-', '-', '-', '-', '-', 'P'],
+            ['-', 'H', '-', '-', '-', '-'],
+            ['W', 'G', '-', '-', 'P', '-'],
+            ['-', '-', 'P', '-', 'H', '-'],
+            ['-', '-', 'H', '-', 'W', 'H']
         ]
         
         
@@ -51,10 +51,7 @@ class Program:
             percept.append('G' + str(i) + ',' + str(j))
             self.map[i][j] = '-'                            # because the Agent will grab it immediately
 
-        if self.map[i][j] == 'H':
-            print('-- Program tell Healing Potion here!')
-            percept.append('H' + str(i) + ',' + str(j))
-            self.map[i][j] = '-'                            # because the Agent will grab it immediately
+        
 
 
         # check for around cells (i, j) to send signal
@@ -74,7 +71,7 @@ class Program:
 
                 if self.map[x][y] == 'H':   # Healing Potion around (i, j) -> (i, j) must be Glow
                     print('-- Program tell Glow here!')
-                    temp = 'L' + str(i) + ',' + str(j)
+                    temp = 'G_L' + str(i) + ',' + str(j)
                     percept.append(temp)
                     
 

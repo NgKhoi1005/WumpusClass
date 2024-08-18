@@ -1,7 +1,7 @@
 from Program import Program
 from Agent import Agent
 
-def Back_tracking(Map, agent, i, j):
+def explore_map(Map, agent, i, j):
     if i < 0 or i >= Map.map_size or j < 0 or j >= Map.map_size:
         return
     agent.visited[i][j] = 1
@@ -13,13 +13,17 @@ def Back_tracking(Map, agent, i, j):
     agent.makeDecision(i, j, Map)
     
     if i+1 < Map.map_size and agent.safe[i+1][j] != 0 and agent.visited[i+1][j] != 1:
-        Back_tracking(Map, agent, i+1, j)
+        explore_map(Map, agent, i+1, j)
     
     if j+1 < Map.map_size and agent.safe[i][j+1] != 0 and agent.visited[i][j+1] != 1:
-        Back_tracking(Map, agent, i, j+1)
+        explore_map(Map, agent, i, j+1)
         
     if 0 <= j-1 and agent.safe[i][j-1] != 0 and agent.visited[i][j-1] != 1:
-        Back_tracking(Map, agent, i, j-1)
+        explore_map(Map, agent, i, j-1)
+
+    if i == 0 and j == 0:
+        print('Agent has climbed out!')
+
 
 def literal_to_str(literal, vpool):
     if literal < 0:
@@ -32,11 +36,11 @@ def main():
     n = 6
     Map = Program(n)
     agent = Agent(n)
-    Back_tracking(Map, agent, 0, 0)
+    explore_map(Map, agent, 0, 0)
     
-    # for clause in agent.KB.clauses:
-    #     literal_clause = [literal_to_str(lit, agent.vpool) for lit in clause]
-    #     print("  |  ".join(literal_clause))
+    for clause in agent.KB.clauses:
+        literal_clause = [literal_to_str(lit, agent.vpool) for lit in clause]
+        print("  |  ".join(literal_clause))
 
     print('Safe matrix: ')
     print(agent.safe)
