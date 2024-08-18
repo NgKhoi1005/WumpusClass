@@ -22,13 +22,14 @@ class Program:
                     ['W', '-', '-', 'P']]
         '''
         self.map =  [
-            ['-', 'H', 'P', 'W', '-', 'H'],
+            ['-', 'P_G', '-', 'W', '-', 'H'],
             ['-', '-', '-', '-', '-', 'P'],
-            ['-', 'H', '-', '-', '-', '-'],
+            ['-', 'H', 'P_G', '-', 'G', '-'],
             ['W', 'G', '-', '-', 'P', '-'],
-            ['-', '-', 'P', '-', 'H', '-'],
-            ['-', '-', 'H', '-', 'W', 'H']
+            ['-', '-', 'P', 'P_G', 'H', '-'],
+            ['-', '-', 'H', '-', '-', 'H']
         ]
+        
         
         
         
@@ -51,8 +52,6 @@ class Program:
             percept.append('G' + str(i) + ',' + str(j))
             self.map[i][j] = '-'                            # because the Agent will grab it immediately
 
-        
-
 
         # check for around cells (i, j) to send signal
         for direction in directions:
@@ -72,6 +71,11 @@ class Program:
                 if self.map[x][y] == 'H':   # Healing Potion around (i, j) -> (i, j) must be Glow
                     print('-- Program tell Glow here!')
                     temp = 'G_L' + str(i) + ',' + str(j)
+                    percept.append(temp)
+
+                if self.map[x][y] == 'P_G':   # Poisonous Gas around (i, j) -> (i, j) must be Whiff
+                    print('-- Program tell Whiff here!')
+                    temp = 'W_H' + str(i) + ',' + str(j)
                     percept.append(temp)
                     
 
