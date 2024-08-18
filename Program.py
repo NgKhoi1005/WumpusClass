@@ -18,14 +18,14 @@ class Program:
         '''
         self.map = [['A', '-', 'P', '-'],
                     ['-', '-', '-', '-'],
-                    ['W', 'G', 'P', '-'],
-                    ['-', '-', '-', 'P']]
+                    ['W', 'G', '-', '-'],
+                    ['W', '-', '-', 'P']]
         '''
         self.map =  [
-            ['-', '-', '-', 'W', '-', '-'],
-            ['-', '-', 'P', '-', '-', 'P'],
+            ['-', '-', 'P', 'W', '-', '-'],
+            ['-', '-', '-', '-', '-', 'P'],
             ['-', '-', '-', '-', '-', '-'],
-            ['W', '-', '-', '-', 'P', '-'],
+            ['W', 'G', '-', '-', 'P', '-'],
             ['-', '-', 'P', '-', '-', '-'],
             ['-', '-', '-', '-', 'W', '-']
         ]
@@ -44,6 +44,15 @@ class Program:
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         percept = []
         print('From cell ', i, j)
+
+        # check for Gold, because it does not have signal
+        if self.map[i][j] == 'G':
+            print('-- Program tell Gold here!')
+            percept.append('G' + str(i) + ',' + str(j))
+            self.map[i][j] = '-'                            # because the Agent will grab it immediately
+
+
+        # check for around cells (i, j) to send signal
         for direction in directions:
             x, y = i + direction[0], j + direction[1]
             if(x >= 0 and x < self.map_size and y >= 0 and y < self.map_size):
@@ -58,9 +67,15 @@ class Program:
                     temp = 'B' + str(i) + ',' + str(j)
                     percept.append(temp)
                     
-                
-          
+
         return percept
+
+
+    def remove(self, lit, x, y):
+        if self.map[x][y] == lit:
+            self.map[x][y] = '-'
+
+
     
 
 
