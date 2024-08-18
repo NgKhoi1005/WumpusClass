@@ -1,8 +1,8 @@
 from Program import Program
 from Agent import Agent, SCORE
 
-from pysat.formula import CNF, IDPool
-from pysat.solvers import Solver
+# from pysat.formula import CNF, IDPool
+# from pysat.solvers import Solver
 
 def explore_map(Map, agent, i, j):
     if i < 0 or i >= Map.map_size or j < 0 or j >= Map.map_size or agent.health == 0:
