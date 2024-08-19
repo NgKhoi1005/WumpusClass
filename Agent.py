@@ -19,11 +19,10 @@ class Agent:
         self.safe[0][0] = 1
         self.visited = np.zeros(shape=(map_size, map_size), dtype='bool')
         self.visited[0][0] = 1
-        self.KB.append([-self.vpool.id('S0,0')])
-        self.KB.append([-self.vpool.id('B0,0')])
         self.KB.append([-self.vpool.id('P0,0')])
         self.KB.append([-self.vpool.id('W0,0')])
         self.KB.append([-self.vpool.id('H0,0')])
+        self.KB.append([-self.vpool.id('P_G0,0')])
         self.health = 100
         self.hp_count = 0
         self.score = 0
@@ -121,7 +120,7 @@ class Agent:
     #SHOT the Wumpus
     def shot_Wumpus(self, i, j, Map):
         self.score += SCORE['SHOT']
-        print('\t\t Agent shot the wumpus at (%d, %d)' %(i, j))
+        print('\t\t Agent shot the wumpus at (%d, %d)' %(i+1, j+1))
         self.confirm_NoWumpus(i, j)
         # forget 1 layer of Stench of cells around died Wumpus
         adj = adjCell(i, j, self.map_size)
@@ -579,20 +578,20 @@ class Agent:
         if Stench == True:  
             self.confirm_NoWumpus(i, j)
             wumpus_pos = []
-            print(' |---> Agent can feel Stench at (%d, %d)' %(i, j))
+            print(' |---> Agent can feel Stench at (%d, %d)' %(i+1, j+1))
             # check if wumpus is around (i, j)
             self.detect_Wumpus(i, j)
             if self.Wumpus(i+1, j): 
-                print('   |-------> Wumpus at (%d, %d)' %(i+1,j))
+                print('   |-------> Wumpus at (%d, %d)' %(i+2,j+1))
                 wumpus_pos.append((i+1, j))
             if self.Wumpus(i-1, j): 
-                print('   |-------> Wumpus at (%d, %d)' %(i-1,j))
+                print('   |-------> Wumpus at (%d, %d)' %(i,j+1))
                 wumpus_pos.append((i-1, j))
             if self.Wumpus(i, j-1): 
-                print('   |-------> Wumpus at (%d, %d)' %(i,j-1))
+                print('   |-------> Wumpus at (%d, %d)' %(i+1,j))
                 wumpus_pos.append((i, j-1))
             if self.Wumpus(i, j+1): 
-                print('   |-------> Wumpus at (%d, %d)' %(i,j+1))
+                print('   |-------> Wumpus at (%d, %d)' %(i+1,j+2))
                 wumpus_pos.append((i, j+1))
 
             # If Agent know exact position of wumpus, let KB know
@@ -621,20 +620,20 @@ class Agent:
         if Breeze == True:   
             self.confirm_NoPit(i, j)
             pit_pos = []
-            print(' |---> Agent can feel Breeze at (%d, %d)' %(i, j))
+            print(' |---> Agent can feel Breeze at (%d, %d)' %(i+1, j+1))
             # check if pit is around (i, j)
             self.detect_Pit(i, j)
             if self.Pit(i+1, j): 
-                print('   |-------> Pit at (%d, %d)' %(i+1,j))
+                print('   |-------> Pit at (%d, %d)' %(i+2,j+1))
                 pit_pos.append((i+1, j))
             if self.Pit(i-1, j): 
-                print('   |-------> Pit at (%d, %d)' %(i-1,j))
+                print('   |-------> Pit at (%d, %d)' %(i,j+1))
                 pit_pos.append((i-1, j))
             if self.Pit(i, j-1): 
-                print('   |-------> Pit at (%d, %d)' %(i,j-1))
+                print('   |-------> Pit at (%d, %d)' %(i+1,j))
                 pit_pos.append((i, j-1))
             if self.Pit(i, j+1): 
-                print('   |-------> Pit at (%d, %d)' %(i,j+1))
+                print('   |-------> Pit at (%d, %d)' %(i+1,j+2))
                 pit_pos.append((i, j+1))
 
             # If Agent know exact position of pit, let KB know
@@ -661,21 +660,21 @@ class Agent:
         # -------------------consider HEALING POTION--------------------------
         if Glow == True:
             self.confirm_NoHP(i, j)
-            print(' |---> Agent can feel Glow at (%d, %d)' %(i, j))
+            print(' |---> Agent can feel Glow at (%d, %d)' %(i+1, j+1))
             # check if HP is around (i, j)
             hp_pos = []
             self.detect_HP(i, j)
             if self.isHP(i+1, j): 
-                print('   |-------> Heal potion at (%d, %d)' %(i+1,j))
+                print('   |-------> Heal potion at (%d, %d)' %(i+2,j+1))
                 hp_pos.append((i+1, j))
             if self.isHP(i-1, j): 
-                print('   |-------> Heal potion at (%d, %d)' %(i-1,j))
+                print('   |-------> Heal potion at (%d, %d)' %(i,j+1))
                 hp_pos.append((i-1, j))
             if self.isHP(i, j-1): 
-                print('   |-------> Heal potion at (%d, %d)' %(i,j-1))
+                print('   |-------> Heal potion at (%d, %d)' %(i+1, j))
                 hp_pos.append((i, j-1))
             if self.isHP(i, j+1): 
-                print('   |-------> Heal potion at (%d, %d)' %(i,j+1))
+                print('   |-------> Heal potion at (%d, %d)' %(i+1,j+2))
                 hp_pos.append((i, j+1))
             
             # If Agent know exact position of HP, let KB know
@@ -695,7 +694,7 @@ class Agent:
 
         # -------------------grab HEALING POTION--------------------------
         if Healing_Potion == True:
-            print(' |---> Agent grabs Healing Potion at (%d, %d)' %(i, j))
+            print(' |---> Agent grabs Healing Potion at (%d, %d)' %(i+1, j+1))
             self.grabHP(i, j, Map)
         else:
             self.confirm_NoHP(i, j)
@@ -704,28 +703,28 @@ class Agent:
         # -------------------consider GOLD--------------------------
         if Gold == True:
             # Grab the gold
-            print(' |---> Agent grabs Gold at (%d, %d)' %(i, j))
+            print(' |---> Agent grabs Gold at (%d, %d)' %(i+1, j+1))
             self.grabGold(i, j)
 
 
         # -------------------consider POISONOUS GAS--------------------------
         if Whiff == True:
             self.confirm_NoPG(i, j)
-            print(' |---> Agent can feel Whiff at (%d, %d)' %(i, j))
+            print(' |---> Agent can feel Whiff at (%d, %d)' %(i+1, j+1))
             # check if HP is around (i, j)
             pg_pos = []
             self.detect_PG(i, j)
             if self.isPG(i+1, j): 
-                print('   |-------> Poisonous Gas at (%d, %d)' %(i+1,j))
+                print('   |-------> Poisonous Gas at (%d, %d)' %(i+2,j+1))
                 pg_pos.append((i+1, j))
             if self.isPG(i-1, j): 
-                print('   |-------> Poisonous Gas at (%d, %d)' %(i-1,j))
+                print('   |-------> Poisonous Gas at (%d, %d)' %(i,j+1))
                 pg_pos.append((i-1, j))
             if self.isPG(i, j-1): 
-                print('   |-------> Poisonous Gas at (%d, %d)' %(i,j-1))
+                print('   |-------> Poisonous Gas at (%d, %d)' %(i+1,j))
                 pg_pos.append((i, j-1))
             if self.isPG(i, j+1): 
-                print('   |-------> Poisonous Gas at (%d, %d)' %(i,j+1))
+                print('   |-------> Poisonous Gas at (%d, %d)' %(i+1,j+2))
                 pg_pos.append((i, j+1))
             
             # If Agent know exact position of PG, let KB know
@@ -766,17 +765,17 @@ class Agent:
 
         if P_Gas == True:
             if self.hp_count == 0 and self.health <= 25:
-                print('Agent has been died at (%d, %d)' %(i,j))
+                print('Agent has been died at (%d, %d)' %(i+1,j+1))
                 return
             
             if self.hp_count == 0 and self.health > 25:
-                print('Agent\'s health has been reduced at (%d, %d)' %(i,j))
+                print('Agent\'s health has been reduced at (%d, %d)' %(i+1,j+1))
                 self.health -= 25
                 print('Agent\'s health:  (%d)' %self.health)
 
             else:
                 self.hp_count -= 1
-                print('Agent has used Healing Potion at (%d, %d)' %(i,j))
+                print('Agent has used Healing Potion at (%d, %d)' %(i+1,j+1))
                 print('Agent\'s health:  (%d)' %self.health)
                 self.score += SCORE['ACTION']
                         

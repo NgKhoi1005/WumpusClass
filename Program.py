@@ -1,12 +1,5 @@
 from Agent import Agent
 
-'''
-Elements = {'Wumpus' : 0,
-           'Pit' : 1,
-            }
-
-'''
-
 class Program:
     def __init__(self, fileName):
         self.map = self.read_Map('maps/' + fileName)
@@ -43,7 +36,7 @@ class Program:
         
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         percept = []
-        print('From cell ', i, j)
+        print('From cell ', i+1, j+1)
 
         # check for Gold, because it does not have signal
         if self.map[i][j] == 'G':
