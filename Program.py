@@ -18,6 +18,7 @@ class Program:
         agent = Agent(self.map_size)
 
         agent.explore_map(self, agent, 0, 0)
+        print(f"Total Score: {agent.score}")
         
     def read_Map(self, filename):
         self.map = []
@@ -30,6 +31,9 @@ class Program:
                 row = line.split('.')
                 self.map.append(row)
         return self.map
+    
+    def write_Map(self, filename):
+        filename = "result" + filename.split('.')[0][-1] + ".txt"
         
         
     # access a cell
