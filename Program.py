@@ -1,11 +1,5 @@
-from Agent import Agent
+from Agent import Agent, literal_to_str
 
-'''
-Elements = {'Wumpus' : 0,
-           'Pit' : 1,
-            }
-
-'''
 
 class Program:
     def __init__(self, fileName):
@@ -15,6 +9,11 @@ class Program:
 
         agent.explore_map(self, agent, 0, 0)
         print(f"Total Score: {agent.score}")
+        print("Clauses in the Knowledge Base:")
+        for clause in agent.KB.clauses:
+            literal_clause = [literal_to_str(lit, agent.vpool) for lit in clause]
+            print(" OR ".join(literal_clause))
+
 
         
     def read_Map(self, filename):
@@ -43,7 +42,7 @@ class Program:
         
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         percept = []
-        print('From cell ', i, j)
+        print('From cell ', i+1, j+1)
 
         # check for Gold, because it does not have signal
         if self.map[i][j] == 'G':
